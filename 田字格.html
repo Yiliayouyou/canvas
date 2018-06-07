@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>田字格</title>
+</head>
+<body>
+    <div class="main">
+        <canvas id="board" width="800" height="800"></canvas>
+    </div>
+</body>
+
+<script type="text/javascript">
+window.onload = function () {
+    let canvas = document.getElementById('board');
+    let context = canvas.getContext('2d');
+    context.rect(0, 0, 800, 800);
+    context.strokeStyle = '#FF6A6A';
+    context.lineWidth = 12;
+
+    context.stroke();
+
+    let pointArr = [
+        {
+            start: { x: 0, y: 0 },
+            end: { x: 800, y: 800 }
+        },
+        {
+            start: { x: 800, y: 0 },
+            end: { x: 0, y: 800 }
+        },
+        {
+            start: { x: 400, y: 0 },
+            end: { x: 400, y: 800 }
+        },
+        {
+            start: { x: 0, y: 400 },
+            end: { x: 800, y: 400 }
+        },
+    ];
+
+    pointArr.map((item) => {
+        drawLine(item.start, item.end, '#FF6A6A', 6);
+    });
+
+    canvas.addEventListener('onmousedown', function(e) {
+        console.log('onmousedown' + e);
+    });
+
+    canvas.addEventListener('click', function (e) {
+        console.log('click' + e);
+    });
+
+    canvas.addEventListener('onmousemove', function (e) {
+        console.log('onmousemove' + e);
+    });
+
+    canvas.addEventListener('onmouseup', function (e) {
+        console.log('onmouseup' + e);
+    });
+
+    function drawLine(s, e, style, width ) {
+        context.beginPath();
+        context.moveTo(s.x, s.y);
+        context.lineTo(e.x, e.y);
+        context.strokeStyle = style;
+        context.lineWidth = width;
+        context.stroke();
+        context.closePath();
+    }
+};
+</script>
+</html>
