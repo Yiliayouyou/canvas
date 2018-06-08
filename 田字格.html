@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>田字格</title>
 </head>
+
 <body>
     <div class="main">
         <canvas id="board" width="800" height="800"></canvas>
@@ -16,110 +18,120 @@
 </body>
 
 <script type="text/javascript">
-window.onload = function () {
-    let canvas = document.getElementById('board');
-    let context = canvas.getContext('2d');
-    drawGrid();
-    clear();
+    class WriteBoard {
+        constructor(id) {
+            this.canvas = document.getElementById(id);
+            this.context = this.canvas.getContext('2d');
 
-    // 绘图部分
-    let isWriting = false;
-    let prePoint = {
-        x: 0,
-        y: 0
-    };
-    let bounding = canvas.getBoundingClientRect();
-
-    canvas.addEventListener('mousedown', function(e) {
-        let mousePoint = {
-            x: e.clientX,
-            y: e.clientY
-        };
-
-        let canvasPoint = transCoordinate(mousePoint, bounding.left, bounding.top);
-
-        isWriting = true;
-        prePoint = canvasPoint;
-    });
-
-    canvas.addEventListener('mousemove', function (e) {
-        if (isWriting) {
-            let mousePoint = {
-                x: e.clientX,
-                y: e.clientY
+            this.isWriting = false;
+            this.prePoint = {
+                x: 0,
+                y: 0
             };
-            let currentPoint = transCoordinate(mousePoint, bounding.left, bounding.top);
-
-            context.lineCap = 'round';
-
-            drawLine(prePoint, currentPoint, 'black', 20);
-
-            prePoint = currentPoint;
+            this.bounding = this.canvas.getBoundingClientRect();
         }
-    });
 
-    canvas.addEventListener('mouseup', function (e) {
-        isWriting = false;
-    });
+        transCoordinate(mousePoint, diffx, diffy) {
+            let canvasPoint = {};
+            canvasPoint.x = mousePoint.x - diffx;
+            canvasPoint.y = mousePoint.y - diffy;
+            return canvasPoint;
+        }
 
-    function drawLine(s, e, style, width ) {
-        context.beginPath();
-        context.moveTo(s.x, s.y);
-        context.lineTo(e.x, e.y);
-        context.strokeStyle = style;
-        context.lineWidth = width;
-        context.stroke();
-        context.closePath();
+        drawLine(s, e, style, width) {
+            this.context.beginPath();
+            this.context.moveTo(s.x, s.y);
+            this.context.lineTo(e.x, e.y);
+            this.context.strokeStyle = style;
+            this.context.lineWidth = width;
+            this.context.stroke();
+            this.context.closePath();
+        }
+
+        drawGrid() {
+            this.context.beginPath();
+            this.context.rect(0, 0, 800, 800);
+            this.context.strokeStyle = '#FF6A6A';
+            this.context.lineWidth = 12;
+
+            this.context.stroke();
+            this.context.closePath();
+
+            let pointArr = [
+                {
+                    start: { x: 0, y: 0 },
+                    end: { x: 800, y: 800 }
+                },
+                {
+                    start: { x: 800, y: 0 },
+                    end: { x: 0, y: 800 }
+                },
+                {
+                    start: { x: 400, y: 0 },
+                    end: { x: 400, y: 800 }
+                },
+                {
+                    start: { x: 0, y: 400 },
+                    end: { x: 800, y: 400 }
+                },
+            ];
+
+            pointArr.map((item) => {
+                this.drawLine(item.start, item.end, '#FF6A6A', 6);
+            });
+        }
+
+        clearBoard() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.drawGrid();
+        }
+
+        write() {
+            let _this = this;
+            this.canvas.addEventListener('mousedown', (e) => {
+                let mousePoint = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+
+                let canvasPoint = this.transCoordinate(mousePoint, _this.bounding.left, _this.bounding.top);
+
+                this.isWriting = true;
+                this.prePoint = canvasPoint;
+            });
+
+            this.canvas.addEventListener('mousemove', (e) => {
+                if (this.isWriting) {
+                    let mousePoint = {
+                        x: e.clientX,
+                        y: e.clientY
+                    };
+                    let currentPoint = this.transCoordinate(mousePoint, _this.bounding.left, _this.bounding.top);
+
+                    this.context.lineCap = 'round';
+
+                    this.drawLine(_this.prePoint, currentPoint, 'black', 20);
+
+                    this.prePoint = currentPoint;
+                }
+            });
+
+            this.canvas.addEventListener('mouseup', (e) => {
+                this.isWriting = false;
+            });
+        }
     }
+    window.onload = function () {
+        let writeBoard = new WriteBoard('board');
+        writeBoard.drawGrid();
+        writeBoard.write();
 
-    function drawGrid(params) {
-        context.beginPath();
-        context.rect(0, 0, 800, 800);
-        context.strokeStyle = '#FF6A6A';
-        context.lineWidth = 12;
-
-        context.stroke();
-        context.closePath();
-
-        let pointArr = [
-            {
-                start: { x: 0, y: 0 },
-                end: { x: 800, y: 800 }
-            },
-            {
-                start: { x: 800, y: 0 },
-                end: { x: 0, y: 800 }
-            },
-            {
-                start: { x: 400, y: 0 },
-                end: { x: 400, y: 800 }
-            },
-            {
-                start: { x: 0, y: 400 },
-                end: { x: 800, y: 400 }
-            },
-        ];
-
-        pointArr.map((item) => {
-            drawLine(item.start, item.end, '#FF6A6A', 6);
-        });
-    }
-
-    //坐标转换
-    function transCoordinate(mousePoint, diffx, diffy) {
-        let canvasPoint = {};
-        canvasPoint.x = mousePoint.x - diffx;
-        canvasPoint.y = mousePoint.y - diffy;
-        return canvasPoint;
-    }
-
-    function clear() {
         let clearButton = document.querySelector('.clear-content');
         clearButton.addEventListener('click', function () {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            drawGrid();
+            writeBoard.clearBoard();
         });
-    }
-};
+    };
+
 </script>
+
 </html>
