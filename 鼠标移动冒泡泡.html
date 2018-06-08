@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>鼠标移动冒泡泡</title>
+    <style>
+        #mousePop {
+            border: 2px solid #e8e8e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <canvas id="mousePop" width="800" height="800"></canvas>
+    </div>
+</body>
+<script type="text/javascript">
+class MousePopBoard {
+    constructor(id, r) {
+        this.canvas = document.getElementById(id);
+
+        if (this.canvas.width < window.innerWidth) {
+            this.canvas.width = window.innerWidth;
+        }
+
+        if (this.canvas.height < window.innerHeight) {
+            this.canvas.height = window.innerHeight;
+        }
+
+        this.context = this.canvas.getContext('2d');
+
+        this.prePoint = {
+            x: 0,
+            y: 0
+        };
+        this.initRadius = r;
+        this.bounding = this.canvas.getBoundingClientRect();
+    }
+
+    transCoordinate(mousePoint, diffx, diffy) {
+        let canvasPoint = {};
+        canvasPoint.x = mousePoint.x - diffx;
+        canvasPoint.y = mousePoint.y - diffy;
+        return canvasPoint;
+    }
+
+    movePop() {
+        let _this = this;
+        this.canvas.addEventListener('mouseover', function (e) {
+            let mousePoint = {
+                x: e.clientX,
+                y: e.clientY
+            };
+
+            let canvasPoint = _this.transCoordinate(mousePoint, _this.bounding.left, _this.bounding.top);
+
+            this.prePoint = canvasPoint;
+
+            _this.createPop();
+        });
+    }
+
+    createPop(colorArr, speed) {
+        colorArr.map((item) => {
+            let randomPoint = this.randomPoint(this.prePoint.x, this.prePoint.y, this.initRadius);
+            this.drawCircle(randomPoint.x, randomPoint.y, this.initRadius, item);
+            this.circleMoveDisaway(direction, speed);
+        });
+    }
+
+    // 以鼠标点(x,y)为中心，r为半径，产生随机点
+    randomPoint(x, y, r) {
+        let randomPoint = {
+            x: 0,
+            y: 0
+        };
+
+        let random1 = tempr = 0;
+
+        // 产生随机数，决定先算x'还是y'
+        let randomNum = Math.random();
+        if (randomNum < 0.5) {
+            // 先算x
+            random1 = (Math.random() * 2 * r + x - r).toFixed(2);
+            tempr = (Math.sqrt( Math.pow(r, 2) - Math.pow(x - random1, 2))).toFixed(2);
+        } else {
+            // 先算y
+            random1 = (Math.random() * 2 * r + y - r).toFixed(2);
+            tempr = (Math.sqrt(Math.pow(r, 2) - Math.pow(y - random1, 2))).toFixed(2);
+        }
+        randomPoint = {
+            x: random1,
+            y: tempr
+        };
+        return randomPoint;
+    }
+
+    drawCircle(x, y, r, color) {
+        this.context.beginPath();
+        this.context.fillStyle = color;
+        this.context.arc(x, y, r, 0, Math.PI * 2, false);
+        this.context.fill();
+        this.context.closePath();
+    };
+
+    circleMoveDisaway(direction, speed) {
+
+    }
+}
+
+window.onload = function () {
+    let mousePopBoard = new MousePopBoard('mousePop', 15);
+
+    mousePopBoard.movePop();
+};
+</script>
+</html>
