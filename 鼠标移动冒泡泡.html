@@ -48,7 +48,7 @@ class MousePopBoard {
 
     movePop() {
         let _this = this;
-        this.canvas.addEventListener('mouseover', function (e) {
+        this.canvas.addEventListener('click', function (e) {
             let mousePoint = {
                 x: e.clientX,
                 y: e.clientY
@@ -56,9 +56,26 @@ class MousePopBoard {
 
             let canvasPoint = _this.transCoordinate(mousePoint, _this.bounding.left, _this.bounding.top);
 
-            this.prePoint = canvasPoint;
+            _this.prePoint = canvasPoint;
 
-            _this.createPop();
+            let colorArr= ['#99ffff', '#99ffcc', '#ccff66', '#99ff66', '#00ff66', '#ff9933'];
+
+            _this.createPop(colorArr, 1000);
+        });
+
+        this.canvas.addEventListener('mousemove', function (e) {
+            let mousePoint = {
+                x: e.clientX,
+                y: e.clientY
+            };
+
+            let canvasPoint = _this.transCoordinate(mousePoint, _this.bounding.left, _this.bounding.top);
+
+            // 向量
+            let v = {
+                x: canvasPoint.x - _this.prePoint.x,
+                y: canvasPoint.y - _this.prePoint.y
+            }
         });
     }
 
@@ -77,18 +94,19 @@ class MousePopBoard {
             y: 0
         };
 
-        let random1 = tempr = 0;
+        let random1 = 0;
+        let tempr = 0;
 
         // 产生随机数，决定先算x'还是y'
         let randomNum = Math.random();
         if (randomNum < 0.5) {
             // 先算x
             random1 = (Math.random() * 2 * r + x - r).toFixed(2);
-            tempr = (Math.sqrt( Math.pow(r, 2) - Math.pow(x - random1, 2))).toFixed(2);
+            tempr = (Math.sqrt( Math.pow(r, 2) - Math.pow(x - random1, 2)) + y).toFixed(2);
         } else {
             // 先算y
             random1 = (Math.random() * 2 * r + y - r).toFixed(2);
-            tempr = (Math.sqrt(Math.pow(r, 2) - Math.pow(y - random1, 2))).toFixed(2);
+            tempr = (Math.sqrt(Math.pow(r, 2) - Math.pow(y - random1, 2)) + x).toFixed(2);
         }
         randomPoint = {
             x: random1,
@@ -106,7 +124,7 @@ class MousePopBoard {
     };
 
     circleMoveDisaway(direction, speed) {
-
+        console.log(speed);
     }
 }
 
