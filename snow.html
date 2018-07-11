@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>snow</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #screen {
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="screen" width="800" height="800">
+        当前浏览器不支持canvas
+    </canvas>
+</body>
+<script>
+class Snow {
+    constructor(size, opacity, position, context) {
+        this.radius = size;
+        this.x = position.x;
+        this.y = position.y;
+        this.vx = 0;
+        this.vy = 0;
+        this.color = 'rgba(255, 255, 255, ' + opacity + ')';
+        this.context = context;
+    }
+
+    drawSnow() {
+        this.context.save();
+        this.context.fillStyle = this.color;
+        this.context.beginPath();
+        this.context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.context.closePath();
+        this.context.fill();
+        this.context.restore();
+    }
+}
+
+window.onload = function () {
+    let canvas = document.getElementById('screen');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let ctx = canvas.getContext('2d');
+    // ctx.fillStyle = "#000000";
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    let snowArr = [];
+
+    (function drawFrame() {
+        window.requestAnimationFrame(drawFrame);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        snowArr.forEach((snow, index) => {
+            snow.x += snow.vx;
+            snow.y += snow.vy;
+
+            if (snow.y > canvas.height || snow.y < 0 || snow.x < 0 || snow.x > canvas.width) {
+                snowArr.splice(index, 1);
+            }
+
+            snow.drawSnow();
+        });
+
+        for (let index = 0; index < 30; index++) {
+            let randomOpacity = Number(Math.random().toFixed(1));
+            let randomSize = Math.floor(Math.random() * 6);
+            let randomx = Math.floor(Math.random() * canvas.width);
+            let randomy = Math.floor(Math.random() * 20 - 20);
+            let randomVx = Math.floor(Math.random() * 6) - 3;
+            let randomVy = Math.floor(Math.random() * 3);
+
+            let pos = {
+                x: randomx,
+                y: randomy
+            }
+            let snow = new Snow(randomSize, randomOpacity, pos, ctx);
+            snow.vx = randomVx;
+            snow.vy = randomVy;
+            snow.drawSnow();
+            snowArr.push(snow);
+        }
+    }());
+};
+</script>
+</html>
