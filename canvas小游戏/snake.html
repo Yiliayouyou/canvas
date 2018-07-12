@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>snake</title>
+</head>
+<body>
+    <canvas id="snake" width="800" height="600" style="background-color: darkslategray">
+         当前浏览器不支持canvas
+    </canvas>
+</body>
+<script>
+class Food {
+    constructor (size, color) {
+        this.radius = size;
+        this.color = color;
+        this.x = Math.floor(Math.random() * 800);
+        this.y = Math.floor(Math.random() * 600);
+    }
+
+    drawFood(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class SnakeBlock {
+    constructor (size, color, x, y) {
+        this.color = color;
+        this.size = size;
+        this.x = x;
+        this.y = y;
+    }
+
+    drawBlock(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.rect(this.x, this.y, this.size, this.size);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Snake {
+    constructor (size, color) {
+        this.color = color;
+        this.size = size;
+        this.headx = Math.floor(Math.random() * 800);
+        this.heady = Math.floor(Math.random() * 600);
+        this.snakeLen = 0;
+        this.snakeBlocks = [];
+    }
+
+    addBody(ctx) {
+        if (this.snakeLen === 0) {
+            let snakeBlock = new SnakeBlock(this.size, this.color, this.headx, this.heady);
+            this.snakeBlocks.push(snakeBlock);
+        } else {
+            if (this.snakeBlocks.length > 0) {
+                let x = this.snakeBlocks[this.snakeBlocks.length - 1].x + this.size;
+                let y = this.snakeBlocks[this.snakeBlocks.length - 1].y + this.size;
+                let snakeBlock = new SnakeBlock(this.size, this.color, x, y);
+                this.snakeBlocks.push(snakeBlock);
+            }
+        }
+        this.snakeLen ++;
+    }
+
+    drawSnake(ctx) {
+        for (let i = 0; i < this.snakeBlocks.length; i++) {
+            let snakeBlock = this.snakeBlocks[i];
+            snakeBlock.drawBlock(ctx);
+        }
+    }
+
+    checkIsDead(ctx) {
+        if (this.headx < 0 || this.headx > 800 || this.heady < 0 || this.heady > 600) {
+            return true;
+        }
+
+        let lastSnakeBlock = this.snakeBlocks[this.snakeBlocks.length - 1];
+        if (Math.abs(this.headx - lastSnakeBlock.x) <= this.size || Math.abs(this.heady - lastSnakeBlock.y) <= this.size) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
+function keyboardAction(snake) {
+    let snakeHead = snake.snakeBlocks[0];
+    document.onkeydown = function (e) {
+        switch (e.keyCode) {
+            // up
+            case 38:
+                snakeHead.y += snake.size;
+                break;
+            // down
+            case 40:
+                snakeHead.y -= snake.size;
+                break;
+            // left
+            case 37:
+                snakeHead.x -= snake.size;
+                break;
+            // right
+            case 39:
+                snakeHead.x += snake.size;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+window.onload = function () {
+    let canvas = document.getElementById('screen');
+    let ctx = canvas.getContext('2d');
+
+    let foodArr = [];
+
+    (function drawFrame() {
+        window.requestAnimationFrame(drawFrame);
+    }());
+
+    keyboardAction();
+};
+</script>
+</html>
