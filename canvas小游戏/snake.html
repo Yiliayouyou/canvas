@@ -7,13 +7,13 @@
     <title>snake</title>
 </head>
 <body>
-    <canvas id="snake" width="800" height="600" style="background-color: darkslategray">
+    <canvas id="screen" width="800" height="600" style="background-color: darkslategray">
          当前浏览器不支持canvas
     </canvas>
 </body>
 <script>
 class Food {
-    constructor (size, color) {
+    constructor (size, color, ctx) {
         this.radius = size;
         this.color = color;
         this.x = Math.floor(Math.random() * 800);
@@ -58,6 +58,7 @@ class Snake {
         this.heady = Math.floor(Math.random() * 600);
         this.snakeLen = 0;
         this.snakeBlocks = [];
+        this.dir = 'up';
     }
 
     addBody(ctx) {
@@ -66,10 +67,31 @@ class Snake {
             this.snakeBlocks.push(snakeBlock);
         } else {
             if (this.snakeBlocks.length > 0) {
-                let x = this.snakeBlocks[this.snakeBlocks.length - 1].x + this.size;
-                let y = this.snakeBlocks[this.snakeBlocks.length - 1].y + this.size;
+                let x = 0;
+                let y = 0;
+                switch (this.dir) {
+                    case 'up':
+                        x = this.snakeBlocks[0].x;
+                        y = this.snakeBlocks[0].y - this.size;
+                        break;
+                    case 'down':
+                        x = this.snakeBlocks[0].x;
+                        y = this.snakeBlocks[0].y + this.size;
+                        break;
+                    case 'left':
+                        x = this.snakeBlocks[0].x - this.size;
+                        y = this.snakeBlocks[0].y;
+                        break;
+                    case 'right':
+                        x = this.snakeBlocks[0].x + this.size;
+                        y = this.snakeBlocks[0].y;
+                        break;
+                    default:
+                        break;
+                }
+
                 let snakeBlock = new SnakeBlock(this.size, this.color, x, y);
-                this.snakeBlocks.push(snakeBlock);
+                this.snakeBlocks.unshift(snakeBlock);
             }
         }
         this.snakeLen ++;
@@ -96,29 +118,12 @@ class Snake {
     }
 }
 
-function keyboardAction(snake) {
+function checkFood(food, snake) {
     let snakeHead = snake.snakeBlocks[0];
-    document.onkeydown = function (e) {
-        switch (e.keyCode) {
-            // up
-            case 38:
-                snakeHead.y += snake.size;
-                break;
-            // down
-            case 40:
-                snakeHead.y -= snake.size;
-                break;
-            // left
-            case 37:
-                snakeHead.x -= snake.size;
-                break;
-            // right
-            case 39:
-                snakeHead.x += snake.size;
-                break;
-            default:
-                break;
-        }
+    if ((food.x > snakeHead.x) && (food.x < snakeHead.x + snake.size) && (food.y > snakeHead.y) && (food.y < snakeHead.y + snake.size)) {
+        return false; // 被吃
+    } else {
+        return true;
     }
 }
 
@@ -126,13 +131,51 @@ window.onload = function () {
     let canvas = document.getElementById('screen');
     let ctx = canvas.getContext('2d');
 
-    let foodArr = [];
+    let snake = new Snake(8, '#0f8e33');
+    snake.addBody(ctx);
+
+    let food = new Food(4, 'red');
 
     (function drawFrame() {
+        // setTimeout(() => {
+        //     drawFrame();
+        // }, 1000);
         window.requestAnimationFrame(drawFrame);
+        ctx.clearRect(0, 0, 800, 600);
+
+        snake.drawSnake(ctx);
+        food.drawFood(ctx);
     }());
 
-    keyboardAction();
+    document.onkeydown = function (e) {
+        console.log(e.keyCode);
+        switch (e.keyCode) {
+            // up
+            case 38:
+                snake.dir = 'up';
+                break;
+            // down
+            case 40:
+                snake.dir = 'down';
+                break;
+            // left
+            case 37:
+                snake.dir = 'left';
+                break;
+            // right
+            case 39:
+                snake.dir = 'right';
+                break;
+            default:
+                break;
+        }
+        let hasFood = checkFood(food, snake);
+        if (!hasFood) {
+            food = new Food(4, 'red');
+            food.drawFood(ctx);
+            snake.addBody(ctx);
+        }
+    }
 };
 </script>
 </html>
