@@ -16,8 +16,10 @@ class Food {
     constructor (size, color, ctx) {
         this.radius = size;
         this.color = color;
-        this.x = Math.floor(Math.random() * 800);
-        this.y = Math.floor(Math.random() * 600);
+        this.x = Math.floor(Math.random() * 196) * 4;
+        this.y = Math.floor(Math.random() * 146) * 4;
+        this.x === 0 ? 4 : this.x;
+        this.y === 0 ? 4 : this.y;
     }
 
     drawFood(ctx) {
@@ -54,8 +56,10 @@ class Snake {
     constructor (size, color) {
         this.color = color;
         this.size = size;
-        this.headx = Math.floor(Math.random() * 800);
-        this.heady = Math.floor(Math.random() * 600);
+        this.headx = Math.floor(Math.random() * 196) * 4 + 2;
+        this.heady = Math.floor(Math.random() * 146) * 4 + 2;
+        this.headx === 0 ? 2 : this.headx;
+        this.heady === 0 ? 2 : this.heady;
         this.snakeLen = 0;
         this.snakeBlocks = [];
         this.dir = 'up';
@@ -97,6 +101,41 @@ class Snake {
         this.snakeLen ++;
     }
 
+    move(ctx) {
+        let tempArr = [];
+        for (let i = this.snakeBlocks.length - 1; i >= 0; i--) {
+            if (i === 0) {
+                let x = 0;
+                let y = 0;
+                switch (this.dir) {
+                    case 'up':
+                        x = this.snakeBlocks[0].x;
+                        y = this.snakeBlocks[0].y - this.size;
+                        break;
+                    case 'down':
+                        x = this.snakeBlocks[0].x;
+                        y = this.snakeBlocks[0].y + this.size;
+                        break;
+                    case 'left':
+                        x = this.snakeBlocks[0].x - this.size;
+                        y = this.snakeBlocks[0].y;
+                        break;
+                    case 'right':
+                        x = this.snakeBlocks[0].x + this.size;
+                        y = this.snakeBlocks[0].y;
+                        break;
+                    default:
+                        break;
+                }
+                this.snakeBlocks[0].x = x;
+                this.snakeBlocks[0].y = y;
+            } else {
+                this.snakeBlocks[i].x = this.snakeBlocks[i - 1].x;
+                this.snakeBlocks[i].y = this.snakeBlocks[i - 1].y;
+            }
+        }
+    }
+
     drawSnake(ctx) {
         for (let i = 0; i < this.snakeBlocks.length; i++) {
             let snakeBlock = this.snakeBlocks[i];
@@ -105,13 +144,19 @@ class Snake {
     }
 
     checkIsDead(ctx) {
-        if (this.headx < 0 || this.headx > 800 || this.heady < 0 || this.heady > 600) {
+        let firstSnakeBlock = this.snakeBlocks[0];
+        if (firstSnakeBlock.x < 0 || firstSnakeBlock.x > 800 || firstSnakeBlock.y < 0 || firstSnakeBlock.y > 600) {
             return true;
         }
 
-        let lastSnakeBlock = this.snakeBlocks[this.snakeBlocks.length - 1];
-        if (Math.abs(this.headx - lastSnakeBlock.x) <= this.size || Math.abs(this.heady - lastSnakeBlock.y) <= this.size) {
-            return true;
+        if (this.snakeLen > 1) {
+            for (let i = 1; i < this.snakeBlocks.length; i++) {
+                let snakeBlock = this.snakeBlocks[i];
+
+                if ((Math.abs(firstSnakeBlock.x - snakeBlock.x) < this.size && firstSnakeBlock.x !== snakeBlock.x)|| (Math.abs(firstSnakeBlock.y - snakeBlock.y) < this.size && firstSnakeBlock.y !== snakeBlock.y)) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -120,7 +165,7 @@ class Snake {
 
 function checkFood(food, snake) {
     let snakeHead = snake.snakeBlocks[0];
-    if ((food.x > snakeHead.x) && (food.x < snakeHead.x + snake.size) && (food.y > snakeHead.y) && (food.y < snakeHead.y + snake.size)) {
+    if ((food.x >= snakeHead.x) && (food.x <= snakeHead.x + snake.size) && (food.y >= snakeHead.y) && (food.y <= snakeHead.y + snake.size)) {
         return false; // 被吃
     } else {
         return true;
@@ -148,23 +193,46 @@ window.onload = function () {
     }());
 
     document.onkeydown = function (e) {
-        console.log(e.keyCode);
         switch (e.keyCode) {
             // up
             case 38:
-                snake.dir = 'up';
+                if (snake.snakeLen > 1) {
+                    if (snake.dir === 'left' || snake.dir === 'right') {
+                        snake.dir = 'up';
+                    }
+                } else {
+                    snake.dir = 'up';
+                }
                 break;
             // down
             case 40:
-                snake.dir = 'down';
+                if (snake.snakeLen > 1) {
+                    if (snake.dir === 'left' || snake.dir === 'right') {
+                        snake.dir = 'down';
+                    }
+                } else {
+                    snake.dir = 'down';
+                }
                 break;
             // left
             case 37:
-                snake.dir = 'left';
+                if (snake.snakeLen > 1) {
+                    if (snake.dir === 'up' || snake.dir === 'down') {
+                        snake.dir = 'left';
+                    }
+                } else {
+                    snake.dir = 'left';
+                }
                 break;
             // right
             case 39:
-                snake.dir = 'right';
+                if (snake.snakeLen > 1) {
+                    if (snake.dir === 'up' || snake.dir === 'down') {
+                        snake.dir = 'right';
+                    }
+                } else {
+                    snake.dir = 'right';
+                }
                 break;
             default:
                 break;
@@ -174,6 +242,13 @@ window.onload = function () {
             food = new Food(4, 'red');
             food.drawFood(ctx);
             snake.addBody(ctx);
+        } else {
+            snake.move(ctx);
+        }
+
+        let isDead = snake.checkIsDead(ctx);
+        if (isDead) {
+            alert('dead');
         }
     }
 };
