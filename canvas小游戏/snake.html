@@ -10,6 +10,8 @@
     <canvas id="screen" width="800" height="600" style="background-color: darkslategray">
          当前浏览器不支持canvas
     </canvas>
+    <button class="restart">重新开始</button>
+    <div class="dead-info"></div>
 </body>
 <script>
 class Food {
@@ -54,8 +56,8 @@ class Snake {
     constructor (size, color) {
         this.color = color;
         this.size = size;
-        this.headx = Math.floor(Math.random() * 196) * 4 + 10;
-        this.heady = Math.floor(Math.random() * 146) * 4 + 10;
+        this.headx = Math.floor(Math.random() * 196) * 4 + 8;
+        this.heady = Math.floor(Math.random() * 146) * 4 + 8;
         this.snakeLen = 0;
         this.snakeBlocks = [];
         this.dir = 'up';
@@ -149,13 +151,40 @@ class Snake {
             for (let i = 1; i < this.snakeBlocks.length; i++) {
                 let snakeBlock = this.snakeBlocks[i];
 
-                if ((Math.abs(firstSnakeBlock.x - snakeBlock.x) < this.size && firstSnakeBlock.x !== snakeBlock.x)|| (Math.abs(firstSnakeBlock.y - snakeBlock.y) < this.size && firstSnakeBlock.y !== snakeBlock.y)) {
+                if ((Math.abs(firstSnakeBlock.x - snakeBlock.x) === 0) && (Math.abs(firstSnakeBlock.y - snakeBlock.y) === 0)) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+}
+
+// 绘制坐标
+function drawCoordinate(ctx) {
+    for (let i = 1; i < 200; i++) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(233,233,233,0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(4*i, 0);
+        ctx.lineTo(4*i, 600);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.restore();
+    }
+
+    for (let i = 1; i < 150; i++) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(233,233,233,0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, 4*i);
+        ctx.lineTo(800, 4*i);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.restore();
     }
 }
 
@@ -168,25 +197,46 @@ function checkFood(food, snake) {
     }
 }
 
-window.onload = function () {
-    let canvas = document.getElementById('screen');
-    let ctx = canvas.getContext('2d');
-
+function startGame(ctx) {
     let snake = new Snake(8, '#0f8e33');
     snake.addBody(ctx);
 
     let food = new Food(4, 'red');
 
-    (function drawFrame() {
-        // setTimeout(() => {
-        //     drawFrame();
-        // }, 1000);
-        window.requestAnimationFrame(drawFrame);
-        ctx.clearRect(0, 0, 800, 600);
+    let speed = 1000; // 1s移动一次
+    let animation = null;
+    let isGameover = false;
 
-        snake.drawSnake(ctx);
-        food.drawFood(ctx);
+    (function drawFrame() {
+        if (isGameover) {
+            cancelAnimationFrame(animation);
+        } else {
+            animation = window.requestAnimationFrame(drawFrame);
+            ctx.clearRect(0, 0, 800, 600);
+
+            food.drawFood(ctx);
+            snake.drawSnake(ctx);
+            drawCoordinate(ctx);
+        }
+
     }());
+    // let animation = drawFrame(ctx, snake, food);
+
+    let autoMoveTimer = null;
+    moveAuto(snake, ctx);
+
+    function moveAuto(snake, ctx) {
+        autoMoveTimer = setTimeout(() => {
+            snake.move(ctx);
+            let isDead = snake.checkIsDead(ctx);
+            if (isDead) {
+                gameOver(autoMoveTimer);
+                isGameover = true;
+            } else {
+                moveAuto(snake, ctx);
+            }
+        }, speed);
+    }
 
     document.onkeydown = function (e) {
         switch (e.keyCode) {
@@ -244,9 +294,30 @@ window.onload = function () {
 
         let isDead = snake.checkIsDead(ctx);
         if (isDead) {
-            alert('dead');
+            gameOver(autoMoveTimer);
+            isGameover = true;
         }
     }
+}
+
+function gameOver(autoMoveTimer) {
+    clearTimeout(autoMoveTimer);
+    let gameOverDom = document.querySelector('.dead-info');
+    gameOverDom.innerHTML = '游戏结束';
+}
+
+window.onload = function () {
+    let canvas = document.getElementById('screen');
+    let ctx = canvas.getContext('2d');
+
+    startGame(ctx);
+
+    let restartButton = document.querySelector('.restart');
+    restartButton.addEventListener('click', function () {
+        let gameOverDom = document.querySelector('.dead-info');
+        gameOverDom.innerHTML = '';
+        startGame(ctx);
+    })
 };
 </script>
 </html>
