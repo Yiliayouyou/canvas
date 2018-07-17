@@ -202,7 +202,6 @@ function startGame(ctx) {
     let v = Math.cos;
     r = 0;
     u = Math.PI * 2;
-    // let firstColor = '#' + (v(r) * 127 + 128 << 16 | v(r + u / 3) * 127 + 128 << 8 | v(r + u / 3 * 2) * 127 + 128).toString(16);
     let firstColor = 'rgb(' + Number(v(r) * 127 + 128) +','+ Number(v(r + u / 3) * 127 + 128) +','+ Number(v(r + u / 3 * 2) * 127 + 128) +')';
 
     let snake = new Snake(8, firstColor);
@@ -227,20 +226,30 @@ function startGame(ctx) {
         }
 
     }());
-    // let animation = drawFrame(ctx, snake, food);
 
     let autoMoveTimer = null;
-    moveAuto(snake, ctx);
+    moveAuto(snake, ctx, function () {
+        let hasFood = checkFood(food, snake);
+        if (!hasFood) {
+            r -= u / -50;
+            let newFoodColor = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
 
-    function moveAuto(snake, ctx) {
+            food = new Food(4, newFoodColor);
+            food.drawFood(ctx);
+            snake.addBody(ctx, newFoodColor);
+        }
+    });
+
+    function moveAuto(snake, ctx, callback) {
         autoMoveTimer = setTimeout(() => {
             snake.move(ctx);
+            callback();
             let isDead = snake.checkIsDead(ctx);
             if (isDead) {
                 gameOver(autoMoveTimer);
                 isGameover = true;
             } else {
-                moveAuto(snake, ctx);
+                moveAuto(snake, ctx, callback);
             }
         }, speed);
     }
