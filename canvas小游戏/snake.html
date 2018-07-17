@@ -63,9 +63,9 @@ class Snake {
         this.dir = 'up';
     }
 
-    addBody(ctx) {
+    addBody(ctx, blockColor) {
         if (this.snakeLen === 0) {
-            let snakeBlock = new SnakeBlock(this.size, this.color, this.headx, this.heady);
+            let snakeBlock = new SnakeBlock(this.size, blockColor, this.headx, this.heady);
             this.snakeBlocks.push(snakeBlock);
         } else {
             if (this.snakeBlocks.length > 0) {
@@ -92,7 +92,7 @@ class Snake {
                         break;
                 }
 
-                let snakeBlock = new SnakeBlock(this.size, this.color, x, y);
+                let snakeBlock = new SnakeBlock(this.size, blockColor, x, y);
                 this.snakeBlocks.unshift(snakeBlock);
             }
         }
@@ -198,10 +198,14 @@ function checkFood(food, snake) {
 }
 
 function startGame(ctx) {
-    let snake = new Snake(8, '#0f8e33');
-    snake.addBody(ctx);
+    let v = Math.cos;
+    r = 0;
+    u = Math.PI * 2;
+    let firstColor = '#' + (v(r) * 127 + 128 << 16 | v(r + u / 3) * 127 + 128 << 8 | v(r + u / 3 * 2) * 127 + 128).toString(16);
+    let snake = new Snake(8, firstColor);
+    snake.addBody(ctx, firstColor);
 
-    let food = new Food(4, 'red');
+    let food = new Food(4, firstColor);
 
     let speed = 1000; // 1s移动一次
     let animation = null;
@@ -285,9 +289,12 @@ function startGame(ctx) {
         }
         let hasFood = checkFood(food, snake);
         if (!hasFood) {
-            food = new Food(4, 'red');
+            r -= u / -50;
+            let newFoodColor = '#' + (v(r) * 127 + 128 << 16 | v(r + u / 3) * 127 + 128 << 8 | v(r + u / 3 * 2) * 127 + 128).toString(16);
+
+            food = new Food(4, newFoodColor);
             food.drawFood(ctx);
-            snake.addBody(ctx);
+            snake.addBody(ctx, newFoodColor);
         } else {
             snake.move(ctx);
         }
