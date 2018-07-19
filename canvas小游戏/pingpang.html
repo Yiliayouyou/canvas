@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>pingpang</title>
+</head>
+<body>
+    <canvas id="screen" width="800" height="600" style="background-color: darkslategray">
+        当前浏览器不支持canvas
+    </canvas>
+</body>
+<script>
+class Ball {
+    constructor (radius, color, x, y) {
+        this.r = radius;
+        this.c = color;
+        this.px = x; // 圆心
+        this.py = y;
+        this.vx = 0; // 速度
+        this.vy = 0;
+        this.ax = 0; // 加速度
+        this.ay = 0;
+    }
+
+    drawBall(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.c;
+        ctx.beginPath();
+        ctx.arc(this.px, this.py, this.r, 0, Math.PI * 2, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    move() {
+        this.vx += this.ax;
+        this.vy += this.ay;
+        this.px += this.vx;
+        this.py += this.vy;
+    }
+
+    //碰撞检测
+    borderCollisionDetect(width, height) {
+        if (this.vx - this.r <= 0 || this.vx + this.r >= width || this.vy - this.r <= 0 || this.vy + this.r >= height) {
+            return false;
+        }
+        return true;
+    }
+
+    // 两个物体碰撞检测（只有球是运动的，另一个被碰撞的是静止的）
+    objectCollisionDetect(obj1, obj2) {
+        
+    }
+}
+window.onload = function () {
+    
+};
+</script>
+</html>
