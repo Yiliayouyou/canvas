@@ -7,7 +7,7 @@
     <title>pingpang</title>
 </head>
 <body>
-    <canvas id="screen" width="800" height="600" style="background-color: darkslategray">
+    <canvas id="screen" width="400" height="300" style="background-color: darkslategray">
         当前浏览器不支持canvas
     </canvas>
 </body>
@@ -18,8 +18,8 @@ class Ball {
         this.c = color;
         this.px = x; // 圆心
         this.py = y;
-        this.vx = 0; // 速度
-        this.vy = 0;
+        this.vx = 10; // 速度
+        this.vy = -10;
         this.ax = 0; // 加速度
         this.ay = 0;
     }
@@ -40,22 +40,128 @@ class Ball {
         this.px += this.vx;
         this.py += this.vy;
     }
+}
 
-    //碰撞检测
-    borderCollisionDetect(width, height) {
-        if (this.vx - this.r <= 0 || this.vx + this.r >= width || this.vy - this.r <= 0 || this.vy + this.r >= height) {
-            return false;
-        }
+class Block {
+    constructor (width, height, color, x, y) {
+        this.w = width;
+        this.h = height;
+        this.c = color;
+        this.x = x;
+        this.y = y;
+    }
+
+    drawBlock(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.c;
+        ctx.beginPath();
+        ctx.rect(this.x, this.y, this.w, this.h);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+//边缘碰撞检测
+function borderCollisionDetect(obj, width, height) {
+    if (obj.px - obj.r <= 0 || obj.px + obj.r >= width || obj.py - obj.r <= 0 || obj.py + obj.r >= height) {
+        return false;
+    }
+    return true;
+}
+
+// 两个物体碰撞检测（只有球是运动的，另一个被碰撞的是静止的）obj1矩形 obj2圆形
+function objectCollisionDetect(obj1, obj2) {
+    let halfOw1 = obj1.w / 2;
+    let halfOh1 = obj1.h / 2;
+    let r = obj2.r;
+    let x1 = obj1.x + halfOw1;
+    let y1 = obj1.y + halfOh1;
+    let x2 = obj2.x;
+    let y2 = obj2.y;
+    let abs = Math.abs;
+    let pow = Math.pow;
+
+    if (abs(x2 - x1) <= halfOw1 || abs(y2 - y1) <= halfOh1) {
         return true;
     }
 
-    // 两个物体碰撞检测（只有球是运动的，另一个被碰撞的是静止的）
-    objectCollisionDetect(obj1, obj2) {
-        
+    if (pow((x2 - x1), 2) + pow((y2 - y1), 2) <= r) {
+        return true;
+    }
+
+    return false;
+}
+
+function startGame(ctx) {
+    let pingpang = new Ball(4, 'white', 30, 260);
+    let obstacleArr = [];
+    let score = 0;
+    let speed = 1000;
+    let levelMap = {
+        1: 4,
+        2: 10,
+        3: 15,
+        4: 25,
+        5: 50
+    }
+    let anmation = null;
+    let timer = null;
+
+    drawFrame(ctx, function (frameInt) {
+        anmation = frameInt;
+        pingpang.drawBall(ctx);
+    });
+
+    autoMove(speed, function (setTimeInt) {
+        timer = setTimeInt;
+        pingpang.move();
+    });
+}
+
+function drawFrame(ctx, callback) {
+    ctx.clearRect(0, 0, 800, 600);
+    callback(window.requestAnimationFrame(function () {
+        drawFrame(ctx, callback);
+    }));
+}
+
+function autoMove(speed, callback) {
+    let setTimeInt = setTimeout(() => {
+        callback(setTimeInt);
+        autoMove(speed, callback);
+    }, speed);
+}
+
+function getLevel(score) {
+    let level = 1;
+    switch (score) {
+        case score < 10:
+            level = 1;
+            break;
+        case score >= 10 && score < 30:
+            level = 2;
+            break;
+        case score >= 30 && score < 60:
+            level = 3;
+            break;
+        case score >= 60 && score < 110:
+            level = 4;
+            break;
+        case score >= 110:
+            level = 5;
+            break;
+        default:
+            break;
     }
 }
 window.onload = function () {
-    
+    let canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d');
+    let cw = canvas.width;
+    let ch = canvas.height;
+
+    startGame(ctx);
 };
 </script>
 </html>
