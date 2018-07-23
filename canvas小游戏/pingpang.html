@@ -49,6 +49,7 @@ class Block {
         this.c = color;
         this.x = x;
         this.y = y;
+        this.show = true;
     }
 
     drawBlock(ctx) {
@@ -103,6 +104,16 @@ function startGame(ctx, cw, ch) {
     let pingpang = new Ball(4, 'white', 30, 260);
     let bat = new Block(20, 4, 'white', 190, 260);
     let obstacleArr = [];
+    for (let i = 0; i < 5; i++) {
+        let x = 0;
+        let y = 0;
+        y = i * 4;
+        for (let j = 0; j < 10; j++) {
+            x = Math.floor(Math.random() * 10) * 8 + j * 80;
+            let obstacle = new Block(8, 8, 'white', x, y);
+            obstacleArr.push(obstacle);
+        }
+    }
     let score = 0;
     let speed = 1000;
     let levelMap = {
@@ -128,6 +139,16 @@ function startGame(ctx, cw, ch) {
             cancelAnimationFrame(anmation);
         }
 
+        obstacleArr.map(item => {
+            if (item.show) {
+                let obstacleCheckResult = objectCollisionDetect(item, pingpang);
+                if (obstacleCheckResult) {
+                    item.show = false;
+                    pingpang.vy *= -1;
+                }
+            }
+        });
+
         keyAction(bat);
         let objCheckResult = objectCollisionDetect(bat, pingpang);
         if (objCheckResult) {
@@ -136,6 +157,11 @@ function startGame(ctx, cw, ch) {
         pingpang.move();
         pingpang.drawBall(ctx);
         bat.drawBlock(ctx);
+        obstacleArr.map(item => {
+            if (item.show) {
+                item.drawBlock(ctx);
+            }
+        });
     });
 
     // autoMove(speed, function (setTimeInt) {
@@ -169,8 +195,8 @@ function keyAction(obj) {
                 break;
             case 39:
                 obj.x += 4;
-                if (obj.x > 396) {
-                    obj.x = 396;
+                if (obj.x > 380) {
+                    obj.x = 380;
                 }
                 break;
             default:
