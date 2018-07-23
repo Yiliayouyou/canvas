@@ -18,8 +18,8 @@ class Ball {
         this.c = color;
         this.px = x; // 圆心
         this.py = y;
-        this.vx = 10; // 速度
-        this.vy = -10;
+        this.vx = 1; // 速度
+        this.vy = -1;
         this.ax = 0; // 加速度
         this.ay = 0;
     }
@@ -64,10 +64,16 @@ class Block {
 
 //边缘碰撞检测
 function borderCollisionDetect(obj, width, height) {
-    if (obj.px - obj.r <= 0 || obj.px + obj.r >= width || obj.py - obj.r <= 0 || obj.py + obj.r >= height) {
-        return false;
+    if (obj.px - obj.r <= 0 || obj.px + obj.r >= width) {
+        return 'xReverse';
     }
-    return true;
+    if (obj.py - obj.r <= 0) {
+        return 'yReverse';
+    }
+    if (obj.py - obj.r >= height) {
+        return 'gameover';
+    }
+    return 'moveon';
 }
 
 // 两个物体碰撞检测（只有球是运动的，另一个被碰撞的是静止的）obj1矩形 obj2圆形
@@ -77,12 +83,12 @@ function objectCollisionDetect(obj1, obj2) {
     let r = obj2.r;
     let x1 = obj1.x + halfOw1;
     let y1 = obj1.y + halfOh1;
-    let x2 = obj2.x;
-    let y2 = obj2.y;
+    let x2 = obj2.px;
+    let y2 = obj2.py;
     let abs = Math.abs;
     let pow = Math.pow;
 
-    if (abs(x2 - x1) <= halfOw1 || abs(y2 - y1) <= halfOh1) {
+    if (abs(x2 - x1) <= halfOw1 + r && abs(y2 - y1) <= halfOh1 + r) {
         return true;
     }
 
@@ -93,8 +99,9 @@ function objectCollisionDetect(obj1, obj2) {
     return false;
 }
 
-function startGame(ctx) {
+function startGame(ctx, cw, ch) {
     let pingpang = new Ball(4, 'white', 30, 260);
+    let bat = new Block(20, 4, 'white', 190, 260);
     let obstacleArr = [];
     let score = 0;
     let speed = 1000;
@@ -110,13 +117,31 @@ function startGame(ctx) {
 
     drawFrame(ctx, function (frameInt) {
         anmation = frameInt;
+        let borderCheckResult = borderCollisionDetect(pingpang, cw, ch);
+        if (borderCheckResult === 'xReverse') {
+            pingpang.vx *= -1;
+        } else if (borderCheckResult === 'yReverse') {
+            pingpang.vy *= -1;
+        }
+
+        if (borderCheckResult === 'gameover') {
+            cancelAnimationFrame(anmation);
+        }
+
+        keyAction(bat);
+        let objCheckResult = objectCollisionDetect(bat, pingpang);
+        if (objCheckResult) {
+            pingpang.vy *= -1;
+        }
+        pingpang.move();
         pingpang.drawBall(ctx);
+        bat.drawBlock(ctx);
     });
 
-    autoMove(speed, function (setTimeInt) {
-        timer = setTimeInt;
-        pingpang.move();
-    });
+    // autoMove(speed, function (setTimeInt) {
+    //     timer = setTimeInt;
+    //     pingpang.move();
+    // });
 }
 
 function drawFrame(ctx, callback) {
@@ -131,6 +156,27 @@ function autoMove(speed, callback) {
         callback(setTimeInt);
         autoMove(speed, callback);
     }, speed);
+}
+
+function keyAction(obj) {
+    document.onkeydown = function (e) {
+        switch (e.keyCode) {
+            case 37:
+                obj.x -= 4;
+                if (obj.x < 0) {
+                    obj.x = 0;
+                }
+                break;
+            case 39:
+                obj.x += 4;
+                if (obj.x > 396) {
+                    obj.x = 396;
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 function getLevel(score) {
@@ -161,7 +207,7 @@ window.onload = function () {
     let cw = canvas.width;
     let ch = canvas.height;
 
-    startGame(ctx);
+    startGame(ctx, cw, ch);
 };
 </script>
 </html>
