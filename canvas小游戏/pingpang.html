@@ -78,7 +78,7 @@ function borderCollisionDetect(obj, width, height) {
 }
 
 // 两个物体碰撞检测（只有球是运动的，另一个被碰撞的是静止的）obj1矩形 obj2圆形
-function objectCollisionDetect(obj1, obj2) {
+function objectCollisionDetect(obj1, obj2, side) {
     let halfOw1 = obj1.w / 2;
     let halfOh1 = obj1.h / 2;
     let r = obj2.r;
@@ -89,8 +89,16 @@ function objectCollisionDetect(obj1, obj2) {
     let abs = Math.abs;
     let pow = Math.pow;
 
-    if (abs(x2 - x1) <= halfOw1 + r && abs(y2 - y1) <= halfOh1 + r) {
-        return true;
+    if (side = 'up') {
+        if (y2 < y1) {
+            if (abs(x2 - x1) <= halfOw1 + r && abs(y2 - y1) <= halfOh1 + r) {
+                return true;
+            }
+        }
+    } else {
+        if (abs(x2 - x1) <= halfOw1 + r && abs(y2 - y1) <= halfOh1 + r) {
+            return true;
+        }
     }
 
     if (pow((x2 - x1), 2) + pow((y2 - y1), 2) <= r) {
@@ -104,25 +112,23 @@ function startGame(ctx, cw, ch) {
     let pingpang = new Ball(4, 'white', 30, 260);
     let bat = new Block(20, 4, 'white', 190, 260);
     let obstacleArr = [];
-    for (let i = 0; i < 5; i++) {
-        let x = 0;
-        let y = 0;
-        y = i * 4;
-        for (let j = 0; j < 10; j++) {
-            x = Math.floor(Math.random() * 10) * 8 + j * 80;
-            let obstacle = new Block(8, 8, 'white', x, y);
-            obstacleArr.push(obstacle);
-        }
-    }
     let score = 0;
-    let speed = 1000;
+    let level = 1;
     let levelMap = {
-        1: 4,
-        2: 10,
-        3: 15,
-        4: 25,
-        5: 50
-    }
+        1: 12,
+        2: 8,
+        3: 4,
+        4: 2,
+        5: 1
+    };
+    let speedMap = {
+        1: 1,
+        2: 1.2,
+        3: 1.4,
+        4: 1.6,
+        5: 1.8
+    };
+    obstacleArr = createObstacle(levelMap[level]);
     let anmation = null;
     let timer = null;
 
@@ -145,12 +151,21 @@ function startGame(ctx, cw, ch) {
                 if (obstacleCheckResult) {
                     item.show = false;
                     pingpang.vy *= -1;
+                    score += 2;
+                    level = getLevel(score);
+                    pingpang.vx = pingpang.vx > 0 ? speedMap[level] : 0 - speedMap[level];
+                    pingpang.vy = pingpang.vy > 0 ? speedMap[level] : 0 - speedMap[level];
+                    console.log(score, level);
                 }
             }
         });
 
+        // if (score === 10 || score === 30 || score === 70 || score === 150) {
+        //     obstacleArr = createObstacle(levelMap[level]);
+        // }
+
         keyAction(bat);
-        let objCheckResult = objectCollisionDetect(bat, pingpang);
+        let objCheckResult = objectCollisionDetect(bat, pingpang, 'up');
         if (objCheckResult) {
             pingpang.vy *= -1;
         }
@@ -163,11 +178,22 @@ function startGame(ctx, cw, ch) {
             }
         });
     });
+}
 
-    // autoMove(speed, function (setTimeInt) {
-    //     timer = setTimeInt;
-    //     pingpang.move();
-    // });
+function createObstacle(line) {
+    let obstacleArr = [];
+    for (let i = 0; i < line; i++) {
+        let x = 0;
+        let y = 0;
+        y = i * 8;
+        for (let j = 0; j < 5; j++) {
+            x = Math.floor(Math.random() * 10) * 8 + j * 80;
+            let obstacle = new Block(8, 8, 'white', x, y);
+            obstacleArr.push(obstacle);
+        }
+    }
+
+    return obstacleArr;
 }
 
 function drawFrame(ctx, callback) {
@@ -175,13 +201,6 @@ function drawFrame(ctx, callback) {
     callback(window.requestAnimationFrame(function () {
         drawFrame(ctx, callback);
     }));
-}
-
-function autoMove(speed, callback) {
-    let setTimeInt = setTimeout(() => {
-        callback(setTimeInt);
-        autoMove(speed, callback);
-    }, speed);
 }
 
 function keyAction(obj) {
@@ -207,25 +226,18 @@ function keyAction(obj) {
 
 function getLevel(score) {
     let level = 1;
-    switch (score) {
-        case score < 10:
-            level = 1;
-            break;
-        case score >= 10 && score < 30:
-            level = 2;
-            break;
-        case score >= 30 && score < 60:
-            level = 3;
-            break;
-        case score >= 60 && score < 110:
-            level = 4;
-            break;
-        case score >= 110:
-            level = 5;
-            break;
-        default:
-            break;
+    if (score < 10) {
+        level = 1;
+    } else if (score >= 10 && score < 30) {
+        level = 2;
+    } else if (score >= 30 && score < 70) {
+        level = 3;
+    } else if (score >= 70 && score < 150) {
+        level = 4;
+    } else if (score >= 150) {
+        level = 5;
     }
+    return level;
 }
 window.onload = function () {
     let canvas = document.getElementById('screen');
