@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>pie</title>
+    <style>
+    canvas {
+        border: 1px solid black;
+    }
+    </style>
+</head>
+<body>
+    <canvas id="screen"></canvas>
+</body>
+<script>
+class Chart {
+    constructor(dom, opts) {
+        if (dom) {
+            this.canvas = dom;
+            this.ctx = this.canvas.getContext('2d');
+        } else {
+            console.error('没有获取到Dom元素');
+        }
+
+        this.opts = opts;
+    }
+
+    initData(opts) {
+        this.data = opts.data;
+    }
+}
+
+class Pie extends Chart{
+    constructor(dom, opts) {
+        super(dom, opts);
+        super.initData(opts);
+        this.ctx.translate(400, 400);
+        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.save();
+    }
+
+    handleData(precise) {
+        let total = 0;
+        this.data.map(item => {
+            total += item.value;
+        });
+
+        this.data.map(item => {
+            item.persent = Number((item.value / total).toFixed(precise));
+        });
+    }
+
+    // 绘制扇形
+    drawSector(x, y, r, start, end, color) {
+        this.ctx.fillStyle = color;
+        this.ctx.save();
+        this.ctx.beginPath();
+
+        this.ctx.translate(x, y);
+        this.ctx.moveTo(0, 0);
+        this.ctx.arc(0, 0, r, start, end);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        this.ctx.restore();
+    }
+}
+
+function drawPie(pie) {
+    pie.handleData(6);
+
+    let accPercent = 0;
+    let v = Math.cos;
+    r = 0;
+    u = Math.PI * 2;
+    let color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
+    /* pie.drawSector(400, 400, 100, accAngle, 0.28 * u, 'blue');
+    pie.drawSector(400, 400, 100, 0.7 * u, u, color); */
+    pie.data.map((item, index) => {
+        let endPercent = accPercent + item.persent;
+        pie.drawSector(0, 0, 100, accPercent * u, endPercent * u, color);
+        r -= u / -50;
+        color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
+        accPercent = endPercent;
+    });
+}
+window.onload = function () {
+    let canvas = document.getElementById('screen');
+    canvas.width = 800;
+    canvas.height = 800;
+    let data = [{
+        name: '西瓜',
+        value: 130
+    }, {
+        name: '菠萝',
+        value: 170
+    }, {
+        name: '香蕉',
+        value: 190
+    }];
+    let pie = new Pie(canvas, {
+        type: 'pie',
+        data: data
+    });
+
+    drawPie(pie);
+};
+</script>
+</html>
