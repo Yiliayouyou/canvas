@@ -51,20 +51,30 @@ class Pie extends Chart{
             item.persent = Number((item.value / total).toFixed(precise));
         });
     }
+}
 
     // 绘制扇形
-    drawSector(x, y, r, start, end, color) {
-        this.ctx.fillStyle = color;
-        this.ctx.save();
-        this.ctx.beginPath();
+function drawSector(ctx, x, y, r, start, end, color) {
+    let startAngle = start;
+    let timer = null;
+    ctx.fillStyle = color;
+    ctx.save();
+    ctx.beginPath();
 
-        this.ctx.translate(x, y);
-        this.ctx.moveTo(0, 0);
-        this.ctx.arc(0, 0, r, start, end);
-        this.ctx.closePath();
-        this.ctx.fill();
+    ctx.translate(x, y);
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, r, startAngle, startAngle + 1*Math.PI/180);
+    ctx.closePath();
+    ctx.fill();
 
-        this.ctx.restore();
+    ctx.restore();
+    if (startAngle < end) {
+        startAngle += 1 * Math.PI / 180;
+        timer = setTimeout(() => {
+            drawSector(ctx, x, y, r, startAngle, end, color);
+        }, 50);
+    } else {
+        clearTimeout(timer);
     }
 }
 
@@ -80,7 +90,7 @@ function drawPie(pie) {
     pie.drawSector(400, 400, 100, 0.7 * u, u, color); */
     pie.data.map((item, index) => {
         let endPercent = accPercent + item.persent;
-        pie.drawSector(0, 0, 100, accPercent * u, endPercent * u, color);
+        drawSector(pie.ctx, 0, 0, 100, accPercent * u, endPercent * u, color);
         r -= u / -50;
         color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
         accPercent = endPercent;
