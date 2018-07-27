@@ -63,7 +63,7 @@ function drawSector(ctx, x, y, r, start, end, color) {
 
     ctx.translate(x, y);
     ctx.moveTo(0, 0);
-    ctx.arc(0, 0, r, startAngle, startAngle + 1*Math.PI/180);
+    ctx.arc(0, 0, r, startAngle, startAngle + 2*Math.PI/180);
     ctx.closePath();
     ctx.fill();
 
@@ -72,10 +72,26 @@ function drawSector(ctx, x, y, r, start, end, color) {
         startAngle += 1 * Math.PI / 180;
         timer = setTimeout(() => {
             drawSector(ctx, x, y, r, startAngle, end, color);
-        }, 50);
+        }, 10);
     } else {
         clearTimeout(timer);
     }
+}
+
+function drawSector1(ctx, x, y, r, start, end, color, callback) {
+    let timer = null;
+    ctx.fillStyle = color;
+    ctx.save();
+    ctx.beginPath();
+
+    ctx.translate(x, y);
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, r, start, end);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+    callback();
 }
 
 function drawPie(pie) {
@@ -88,13 +104,34 @@ function drawPie(pie) {
     let color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
     /* pie.drawSector(400, 400, 100, accAngle, 0.28 * u, 'blue');
     pie.drawSector(400, 400, 100, 0.7 * u, u, color); */
-    pie.data.map((item, index) => {
-        let endPercent = accPercent + item.persent;
-        drawSector(pie.ctx, 0, 0, 100, accPercent * u, endPercent * u, color);
-        r -= u / -50;
-        color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
-        accPercent = endPercent;
-    });
+    let index = 0;
+    function draw() {
+        if (index < pie.data.length) {
+            let item = pie.data[index];
+            let endPercent = accPercent + item.persent;
+            // drawSector(pie.ctx, 0, 0, 100, accPercent * u, endPercent * u, color);
+
+            let accEnd = accPercent;
+            let timer = null;
+            function drawPieCallback() {
+                if (accEnd < endPercent) {
+                    accEnd += 0.01;
+                    timer = setTimeout(() => {
+                        pie.ctx.clearRect(0, 0, 800, 800);
+                        drawSector1(pie.ctx, 0, 0, 100, accPercent * u, accEnd * u, color, drawPieCallback);
+                    }, 10);
+                } else {
+                    clearTimeout(timer);
+                    r -= u / -20;
+                    color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
+                    accPercent = endPercent;
+                    index ++;
+                    draw();
+                }
+            }
+            drawSector1(pie.ctx, 0, 0, 100, accPercent * u, accEnd * u, color, drawPieCallback);
+        }
+    }
 }
 window.onload = function () {
     let canvas = document.getElementById('screen');
