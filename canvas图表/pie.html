@@ -79,12 +79,11 @@ function drawSector(ctx, x, y, r, start, end, color) {
 }
 
 function drawSector1(ctx, x, y, r, start, end, color, callback) {
-    let timer = null;
     ctx.fillStyle = color;
     ctx.save();
     ctx.beginPath();
 
-    ctx.translate(x, y);
+    // ctx.translate(x, y);
     ctx.moveTo(0, 0);
     ctx.arc(0, 0, r, start, end);
     ctx.closePath();
@@ -99,47 +98,39 @@ function drawSector1(ctx, x, y, r, start, end, color, callback) {
 function drawPie(pie) {
     pie.handleData(6);
 
-    let accPercent = 0;
-    let start = [];
-    let end = [];
-    let colorArr = [];
-    let v = Math.cos;
-    r = 0;
-    u = Math.PI * 2;
-    let color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
-    /* pie.drawSector(400, 400, 100, accAngle, 0.28 * u, 'blue');
-    pie.drawSector(400, 400, 100, 0.7 * u, u, color); */
+    let accPercent = 0; // 从0开始累加百分比
+    let start = []; // 扇形起始百分比数组
+    let end = []; // 扇形结束百分比数组
+    let colorArr = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+    let u = Math.PI * 2;
     let index = 0;
     function draw() {
         if (index < pie.data.length) {
-            start.push(accPercent);
-            colorArr.push(color);
             let item = pie.data[index];
+            start.push(accPercent);
             let endPercent = accPercent + item.persent;
             end.push(endPercent);
 
-            let accEnd = accPercent;
             let timer = null;
+            let accEnd = accPercent; // 动态绘制扇形累加渐变过程变量控制
             function drawPieCallback() {
                 if (accEnd < endPercent) {
-                    accEnd += 0.01;
+                    accEnd += 0.0001;
                     timer = setTimeout(() => {
-                        pie.ctx.clearRect(0, 0, 800, 800);
+                        pie.ctx.clearRect(-400, -400, 800, 800);
                         for (let i = 0; i < index; i++) {
-                            drawSector1(pie.ctx, 0, 0, 100, start[i] * u, end[i] * u, colorArr[i]);
+                            drawSector1(pie.ctx, 0, 0, 200, start[i] * u, end[i] * u, colorArr[i]);
                         }
-                        drawSector1(pie.ctx, 0, 0, 100, accPercent * u, accEnd * u, color, drawPieCallback);
-                    }, 1000 / 60);
+                        drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback);
+                    }, 0);
                 } else {
                     clearTimeout(timer);
-                    r -= u / -20;
-                    color = 'rgb(' + Number(v(r) * 127 + 128) + ',' + Number(v(r + u / 3) * 127 + 128) + ',' + Number(v(r + u / 3 * 2) * 127 + 128) + ')';
                     accPercent = endPercent;
                     index ++;
                     draw();
                 }
             }
-            drawSector1(pie.ctx, 0, 0, 100, accPercent * u, accEnd * u, color, drawPieCallback);
+            drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback);
         }
     }
     draw();
@@ -153,10 +144,10 @@ window.onload = function () {
         value: 130
     }, {
         name: '菠萝',
-        value: 170
+        value: 130
     }, {
         name: '香蕉',
-        value: 190
+        value: 130
     }];
     let pie = new Pie(canvas, {
         type: 'pie',
@@ -164,6 +155,8 @@ window.onload = function () {
     });
 
     drawPie(pie);
+
+    // drawSector1(pie.ctx, 0, 0, 200, 0.2 * Math.PI * 2, 0.6 * Math.PI * 2, '#2f4554');
 };
 </script>
 </html>
