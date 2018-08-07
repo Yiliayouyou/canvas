@@ -95,6 +95,22 @@ function drawSector1(ctx, x, y, r, start, end, color, callback) {
     }
 }
 
+function drawLabel(ctx, start, end, data) {
+    let centerAngle = (start + end) / 2;
+    let r = 280;
+    let SIN = Math.sin;
+    let COS = Math.cos;
+
+    let wordX = r * SIN(centerAngle);
+    let wordY = - r * COS(centerAngle);
+
+    if (centerAngle < 180) {
+        
+    } else {
+        
+    }
+}
+
 function drawPie(pie) {
     pie.handleData(6);
 
