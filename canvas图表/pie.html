@@ -134,8 +134,14 @@ function drawText(ctx, str, x, y, direction, piex, piey, color) {
     ctx.textBaseline = 'middle';
     let wordLen = ctx.measureText(str).width;
     if (direction === 'right') {
+        if (Number((x + 18).toFixed(0)) - Number(piex.toFixed(0)) >= -5) {
+            x = piex - 30;
+        }
         ctx.fillText(str, x - wordLen, y);
     } else {
+        if (Number((x - 18).toFixed(0)) - Number(piex.toFixed(0) <= 5)) {
+            x = piex + 30;
+        }
         ctx.fillText(str, x, y);
     }
     ctx.moveTo(x, y);
@@ -207,7 +213,7 @@ window.onload = function () {
         { value: 60, name: '邮件营销' },
         { value: 9, name: '联盟广告' },
         { value: 6, name: '视频广告' },
-        { value: 8, name: '搜索引擎' }
+        { value: 9, name: '搜索引擎' }
     ];
     let pie = new Pie(canvas, {
         type: 'pie',
