@@ -23,5 +23,19 @@ function rectToPolor(x, y) {
 }
 
 function polorToRect(r, angle) {
-    
+    // angle 从12点方向开始为0
+    let SIN = Math.sin;
+    let COS = Math.cos;
+
+    let x = r * SIN(centerAngle);
+    let y = - r * COS(centerAngle);
+
+    return {
+        x: x,
+        y: y
+    };
 }
+
+export {
+    polorToRect
+};

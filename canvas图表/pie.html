@@ -78,7 +78,7 @@ function drawSector(ctx, x, y, r, start, end, color) {
     }
 }
 
-function drawSector1(ctx, x, y, r, start, end, color, callback) {
+function drawSector1(ctx, x, y, r, start, end, color, callback, data) {
     ctx.fillStyle = color;
     ctx.save();
     ctx.beginPath();
@@ -90,25 +90,64 @@ function drawSector1(ctx, x, y, r, start, end, color, callback) {
     ctx.fill();
 
     ctx.restore();
+
+    let u = Math.PI * 2;
+    data.color = color;
+    drawLabel(ctx, start / u, end / u, data);
     if (callback) {
         callback();
     }
 }
 
-function drawLabel(ctx, start, end, data) {
-    let centerAngle = (start + end) / 2;
-    let r = 280;
+function polorToRect(r, angle) {
+    // angle 从12点方向开始为0
     let SIN = Math.sin;
     let COS = Math.cos;
 
-    let wordX = r * SIN(centerAngle);
-    let wordY = - r * COS(centerAngle);
+    let x = r * SIN(angle);
+    let y = - r * COS(angle);
 
-    if (centerAngle < 180) {
-        
+    return {
+        x: x,
+        y: y
+    };
+}
+
+function drawLabel(ctx, start, end, data) {
+    let center = (start + end) / 2;
+    let centerAngle = center * Math.PI * 2;
+
+    let wordPos = polorToRect(280, centerAngle);
+    let piePos = polorToRect(200, centerAngle);
+
+    if (center < 0.5) {
+        drawText(ctx, data.name, wordPos.x, wordPos.y, 'left', piePos.x, piePos.y, data.color);
     } else {
-        
+        drawText(ctx, data.name, wordPos.x, wordPos.y, 'right', piePos.x, piePos.y, data.color);
     }
+}
+
+function drawText(ctx, str, x, y, direction, piex, piey, color) {
+    ctx.save();
+    ctx.rotate(Math.PI / 2);
+    ctx.font = '12px';
+    ctx.textBaseline = 'middle';
+    let wordLen = ctx.measureText(str).width;
+    if (direction === 'right') {
+        ctx.fillText(str, x - wordLen, y);
+    } else {
+        ctx.fillText(str, x, y);
+    }
+    ctx.moveTo(x, y);
+    if (direction === 'right') {
+        ctx.lineTo(x + 18, y);
+    } else {
+        ctx.lineTo(x - 18, y);
+    }
+    ctx.lineTo(piex, piey);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.restore();
 }
 
 function drawPie(pie) {
@@ -117,7 +156,7 @@ function drawPie(pie) {
     let accPercent = 0; // 从0开始累加百分比
     let start = []; // 扇形起始百分比数组
     let end = []; // 扇形结束百分比数组
-    let colorArr = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+    let colorArr = ['#00A0FF', '#FFBF00', '#AADD33', '#E81B1C', '#0035FF', '#33DD77', '#FFE53E', '#E919BD', '#22BC00', '#18AECE', '#991BEA', 'FF9633'];
     let u = Math.PI * 2;
     let index = 0;
     function draw() {
@@ -141,9 +180,11 @@ function drawPie(pie) {
                     timer = setTimeout(() => {
                         pie.ctx.clearRect(-400, -400, 800, 800);
                         for (let i = 0; i < index; i++) {
-                            drawSector1(pie.ctx, 0, 0, 200, start[i] * u, end[i] * u, colorArr[i]);
+                            drawSector1(pie.ctx, 0, 0, 200, start[i] * u, end[i] * u, colorArr[i], function() {
+                                return;
+                            }, pie.data[i]);
                         }
-                        drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback);
+                        drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback, item);
                     }, 1000 / 60);
                 } else {
                     clearTimeout(timer);
@@ -152,7 +193,7 @@ function drawPie(pie) {
                     draw();
                 }
             }
-            drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback);
+            drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback, item);
         }
     }
     draw();
@@ -162,11 +203,11 @@ window.onload = function () {
     canvas.width = 800;
     canvas.height = 800;
     let data = [
-        { value: 335, name: '直接访问' },
-        { value: 310, name: '邮件营销' },
-        { value: 234, name: '联盟广告' },
-        { value: 135, name: '视频广告' },
-        { value: 1548, name: '搜索引擎' }
+        { value: 213, name: '直接访问' },
+        { value: 60, name: '邮件营销' },
+        { value: 9, name: '联盟广告' },
+        { value: 6, name: '视频广告' },
+        { value: 8, name: '搜索引擎' }
     ];
     let pie = new Pie(canvas, {
         type: 'pie',
