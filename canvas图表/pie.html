@@ -113,6 +113,43 @@ function polorToRect(r, angle) {
     };
 }
 
+function measureLabelPos(ctx, fontSize, data, r, length1, length2) {
+    const u = Math.PI * 2;
+    let startStopArr = [];
+    let accPercent = 0;
+    data.map(item => {
+        startStopArr.push({
+            start: accPercent,
+            end: accPercent + item.persent
+        });
+        accPercent += item.persent;
+    });
+
+    startStopArr.map((item, index) => {
+        let center = (item.start + item.end) / 2;
+        let centerAngle = center * u;
+
+        let wordLen = ctx.measureText(data.label).width;
+        let wordPos = polorToRect(r + length1, centerAngle);
+        let piePos = polorToRect(r, centerAngle);
+
+        if (center < 0.5) {
+            if (Number((wordPos.x - length2).toFixed(0)) - Number(piex.toFixed(0) <= 5)) {
+                wordPos.x = piex + length2 + 12;
+            }
+        } else {
+            if (Number((wordPos.x + 18).toFixed(0)) - Number(piex.toFixed(0)) >= -5) {
+                x = piex - length2 - 12;
+            }
+        }
+
+        item.wordPos = wordPos;
+        item.piePos = piePos;
+    });
+
+    // todo  和下一个比较y轴数据
+}
+
 function drawLabel(ctx, start, end, data) {
     let center = (start + end) / 2;
     let centerAngle = center * Math.PI * 2;
@@ -222,7 +259,7 @@ window.onload = function () {
 
     drawPie(pie);
 
-    // drawSector1(pie.ctx, 0, 0, 200, 0.2 * Math.PI * 2, 0.6 * Math.PI * 2, '#2f4554');
+    measureLabelPos('', '', data);
 };
 </script>
 </html>
