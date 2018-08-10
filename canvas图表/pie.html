@@ -49,6 +49,7 @@ class Pie extends Chart{
 
         this.data.map(item => {
             item.persent = Number((item.value / total).toFixed(precise));
+            item.labelFontSize = this.data.labelFontSize;
         });
     }
 }
@@ -93,7 +94,7 @@ function drawSector1(ctx, x, y, r, start, end, color, callback, data) {
 
     let u = Math.PI * 2;
     data.color = color;
-    drawLabel(ctx, start / u, end / u, data);
+    // drawLabel(ctx, start / u, end / u, data);
     if (callback) {
         callback();
     }
@@ -113,8 +114,9 @@ function polorToRect(r, angle) {
     };
 }
 
-function measureLabelPos(ctx, fontSize, data, r, length1, length2) {
+function measureLabelPos(ctx, fontSize, data, r, length1, length2, h) {
     const u = Math.PI * 2;
+    const ABS = Math.abs;
     let startStopArr = [];
     let accPercent = 0;
     data.map(item => {
@@ -132,22 +134,54 @@ function measureLabelPos(ctx, fontSize, data, r, length1, length2) {
         let wordLen = ctx.measureText(data.label).width;
         let wordPos = polorToRect(r + length1, centerAngle);
         let piePos = polorToRect(r, centerAngle);
+        let transPos = {};
+        let lineStartPos = {};
 
+        // 调整x轴
         if (center < 0.5) {
-            if (Number((wordPos.x - length2).toFixed(0)) - Number(piex.toFixed(0) <= 5)) {
-                wordPos.x = piex + length2 + 12;
+            if (Number((wordPos.x - length2).toFixed(0)) - Number(piePos.x.toFixed(0) <= 5)) {
+                transPos.x = wordPos.x;
+                wordPos.x = wordPos.x + length2 + 12;
+                lineStartPos.x = wordPos.x;
             }
         } else {
-            if (Number((wordPos.x + 18).toFixed(0)) - Number(piex.toFixed(0)) >= -5) {
-                x = piex - length2 - 12;
+            if (Number((wordPos.x + 18).toFixed(0)) - Number(piePos.x.toFixed(0)) >= -5) {
+                transPos.x = wordPos.x;
+                wordPos.x = wordPos.x - length2 - 12 - wordLen;
+                lineStartPos.x = wordPos.x + wordLen;
             }
         }
 
+        // 调整y轴
+        if (index > 1) {
+            let distanceY = ABS(wordPos.y - startStopArr[index - 1].wordPos.y);
+            if (center < 0.5) {
+                if (distanceY < fontSize + 12) {
+                    wordPos.y += fontSize + 12 - distanceY;
+                }
+                if (wordPos.y > h / 2) {
+                    wordPos.y = h / 2 - fontSize / 2;
+                }
+            } else {
+                if (distanceY < fontSize + 12) {
+                    wordPos.y -= fontSize + 12 - distanceY;
+                }
+                if (wordPos.y < - h / 2) {
+                    wordPos.y = - h / 2 + fontSize / 2;
+                }
+            }
+        }
+
+        transPos.y = wordPos.y;
+        lineStartPos.y = wordPos.y;
+
         item.wordPos = wordPos;
         item.piePos = piePos;
+        item.transPos = transPos;
     });
 
-    // todo  和下一个比较y轴数据
+    console.log(startStopArr);
+    return startStopArr;
 }
 
 function drawLabel(ctx, start, end, data) {
@@ -193,8 +227,28 @@ function drawText(ctx, str, x, y, direction, piex, piey, color) {
     ctx.restore();
 }
 
+function drawText1(ctx, data, pos, color) {
+    let wordPos = pos.wordPos;
+    let transPos = pos.transPos;
+    let piePos = pos.piePos;
+    let lineStartPos = pos.lineStartPos;
+    ctx.save();
+    ctx.rotate(Math.PI / 2);
+    ctx.font = data.labelFontSize;
+    ctx.textBaseline = 'middle';
+    let wordLen = ctx.measureText(data.label).width;
+    ctx.fillText(data.name, wordPos.x, wordPos.y);
+    ctx.moveTo(lineStartPos.x, lineStartPos.y);
+    ctx.lineTo(transPos.x, transPos.y);
+    ctx.lineTo(piePos.x, piePos.y);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.restore();
+}
+
 function drawPie(pie) {
     pie.handleData(6);
+    let labelPosArr = measureLabelPos(pie.ctx, 16, pie.data, 200, 30, 10, 800);
 
     let accPercent = 0; // 从0开始累加百分比
     let start = []; // 扇形起始百分比数组
@@ -226,6 +280,8 @@ function drawPie(pie) {
                             drawSector1(pie.ctx, 0, 0, 200, start[i] * u, end[i] * u, colorArr[i], function() {
                                 return;
                             }, pie.data[i]);
+
+                            drawText1(pie.ctx, pie.data[i], labelPosArr[i], colorArr[i]);
                         }
                         drawSector1(pie.ctx, 0, 0, 200, accPercent * u, accEnd * u, colorArr[index], drawPieCallback, item);
                     }, 1000 / 60);
@@ -243,8 +299,8 @@ function drawPie(pie) {
 }
 window.onload = function () {
     let canvas = document.getElementById('screen');
-    canvas.width = 800;
-    canvas.height = 800;
+    let w = canvas.width = 800;
+    let h = canvas.height = 800;
     let data = [
         { value: 213, name: '直接访问' },
         { value: 60, name: '邮件营销' },
@@ -254,12 +310,11 @@ window.onload = function () {
     ];
     let pie = new Pie(canvas, {
         type: 'pie',
-        data: data
+        data: data,
+        labelFontSize: 16
     });
 
     drawPie(pie);
-
-    measureLabelPos('', '', data);
 };
 </script>
 </html>
